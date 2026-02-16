@@ -180,7 +180,7 @@ textarea {
 }
 
 .tree-children {
-  margin-left: 0.8rem;
+  margin-left: calc(0.8rem + 2ch);
 }
 
 .tree-node.branch {
@@ -246,6 +246,20 @@ textarea {
 .legend-chip.fixed {
   background: #fff8ec;
   border-color: #d7ba8a;
+}
+
+.legend-chip.reserve {
+  background: #ffeef4;
+  border-color: #e0a9be;
+}
+
+.tree-reserve {
+  border: 1px solid #e0a9be;
+  background: #ffeef4;
+  color: #93405e;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  padding: 0.02rem 0.45rem;
 }
 
 .fixed-list {

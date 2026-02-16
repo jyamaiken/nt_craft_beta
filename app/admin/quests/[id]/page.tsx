@@ -95,6 +95,7 @@ export default function QuestEditPage() {
         requirements: editing.requirements.map((item) => ({
           material_id: item.material_id.trim(),
           quantity: item.quantity,
+          reserve_required: Boolean(item.reserve_required),
         })),
       };
 
@@ -214,12 +215,30 @@ export default function QuestEditPage() {
             >
               削除
             </button>
+            <label className="inline-check">
+              <span>予備必要</span>
+              <input
+                type="checkbox"
+                checked={Boolean(requirement.reserve_required)}
+                onChange={(e) => {
+                  const requirements = [...editing.requirements];
+                  requirements[reqIndex] = {
+                    ...requirement,
+                    reserve_required: e.target.checked,
+                  };
+                  setEditing({ ...editing, requirements });
+                }}
+              />
+            </label>
           </div>
         ))}
 
         <button
           onClick={() => {
-            const requirements = [...editing.requirements, { material_id: "", quantity: 1 }];
+            const requirements = [
+              ...editing.requirements,
+              { material_id: "", quantity: 1, reserve_required: false },
+            ];
             setEditing({ ...editing, requirements });
           }}
         >

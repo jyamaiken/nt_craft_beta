@@ -1,6 +1,7 @@
 export type RecipeItem = {
   material_id: string;
   quantity: number;
+  reserve_required?: boolean;
 };
 
 export type Material = {
@@ -20,6 +21,7 @@ export type TreeNode = {
   name: string;
   quantity: number;
   fixed: boolean;
+  reserveRequired: boolean;
   children: TreeNode[];
 };
 

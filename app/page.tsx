@@ -30,6 +30,7 @@ function Tree({
             <span className="tree-kind">
               {node.fixed ? "固定" : node.children.length > 0 ? "合成" : "基礎"}
             </span>
+            {node.reserveRequired ? <span className="tree-reserve">予備</span> : null}
             <span className="tree-qty">x{node.quantity}</span>
           </button>
           {node.children.length > 0 ? (
@@ -96,6 +97,16 @@ export default function HomePage() {
     return calculateQuestMaterials(selectedQuest.requirements, materials, fixedMaterialIds);
   }, [selectedQuest, materials, fixedMaterialIds]);
 
+  const reserveRequiredIds = useMemo(
+    () =>
+      new Set(
+        (selectedQuest?.requirements ?? [])
+          .filter((item) => Boolean(item.reserve_required))
+          .map((item) => item.material_id),
+      ),
+    [selectedQuest],
+  );
+
   const materialNameById = useMemo(
     () => new Map<string, string>(materials.map((material) => [material.id, material.name])),
     [materials],
@@ -161,6 +172,7 @@ export default function HomePage() {
                   <span className="legend-chip branch">合成</span>
                   <span className="legend-chip leaf">基礎</span>
                   <span className="legend-chip fixed">固定</span>
+                  <span className="legend-chip reserve">予備</span>
                 </p>
               </div>
               <p className="muted">素材をクリックすると「所持済みとして固定/解除」できます。</p>
@@ -222,6 +234,7 @@ export default function HomePage() {
                     <th>ID</th>
                     <th>素材名</th>
                     <th>数量</th>
+                    <th>備考</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,11 +243,12 @@ export default function HomePage() {
                       <td>{item.id}</td>
                       <td>{item.name}</td>
                       <td>{item.quantity}</td>
+                      <td>{reserveRequiredIds.has(item.id) ? "予備必要" : ""}</td>
                     </tr>
                   ))}
                   {totals.length === 0 ? (
                     <tr>
-                      <td colSpan={3}>必要素材はありません（固定設定により全て充足）。</td>
+                      <td colSpan={4}>必要素材はありません（固定設定により全て充足）。</td>
                     </tr>
                   ) : null}
                 </tbody>

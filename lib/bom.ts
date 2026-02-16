@@ -22,6 +22,7 @@ function expandNode(
   baseTotals: Record<string, { name: string; quantity: number }>,
   allTotals: Record<string, { name: string; quantity: number }>,
   fixedMaterialIds: Set<string>,
+  reserveRequired: boolean,
   stack: string[],
 ): TreeNode {
   const material = materialsById.get(materialId);
@@ -33,6 +34,7 @@ function expandNode(
       name: unknownName,
       quantity,
       fixed: false,
+      reserveRequired,
       children: [],
     };
     if (!allTotals[unknownId]) {
@@ -53,6 +55,7 @@ function expandNode(
       name: cycleName,
       quantity,
       fixed: false,
+      reserveRequired,
       children: [],
     };
     addTotal(allTotals, material, quantity);
@@ -67,6 +70,7 @@ function expandNode(
     name: material.name,
     quantity,
     fixed,
+    reserveRequired,
     children: [],
   };
 
@@ -95,6 +99,7 @@ function expandNode(
         baseTotals,
         allTotals,
         fixedMaterialIds,
+        false,
         nextStack,
       ),
     );
@@ -120,6 +125,7 @@ export function calculateQuestMaterials(
       baseTotals,
       allTotals,
       fixedMaterialIds,
+      Boolean(requirement.reserve_required),
       [],
     ),
   );

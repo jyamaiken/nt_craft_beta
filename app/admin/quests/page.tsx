@@ -11,7 +11,10 @@ function requirementsSummary(quest: Quest, nameById: Map<string, string>): strin
   }
 
   return quest.requirements
-    .map((item) => `${nameById.get(item.material_id) ?? item.material_id} x${item.quantity}`)
+    .map((item) => {
+      const label = `${nameById.get(item.material_id) ?? item.material_id} x${item.quantity}`;
+      return item.reserve_required ? `${label}(予備)` : label;
+    })
     .join(", ");
 }
 
