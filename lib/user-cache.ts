@@ -1,4 +1,4 @@
-import { Material, Quest } from "@/lib/types";
+import { Material, Quest, RecipeItem } from "@/lib/types";
 
 type CraftData = {
   materials: Material[];
@@ -93,6 +93,7 @@ function buildEntityOverlay<T extends { id: string }>(
 function applyEntityOverlay<T extends { id: string }>(
   baseItems: T[],
   overlay: EntityOverlay<T>,
+  mergeSameId?: (baseItem: T, overlayItem: T) => T,
 ): T[] {
   const deletedSet = new Set(overlay.deleted);
   const mergedMap = new Map<string, T>();
@@ -103,7 +104,14 @@ function applyEntityOverlay<T extends { id: string }>(
       continue;
     }
     const updated = overlay.updated[baseItem.id];
-    mergedMap.set(baseItem.id, updated ?? baseItem);
+    if (updated) {
+      mergedMap.set(
+        baseItem.id,
+        mergeSameId ? mergeSameId(baseItem, updated) : updated,
+      );
+    } else {
+      mergedMap.set(baseItem.id, baseItem);
+    }
   }
 
   // Apply updates that do not exist in base (legacy/edge overlays).
@@ -111,7 +119,12 @@ function applyEntityOverlay<T extends { id: string }>(
     if (deletedSet.has(id)) {
       continue;
     }
-    mergedMap.set(id, updated);
+    const existing = mergedMap.get(id);
+    if (existing && mergeSameId) {
+      mergedMap.set(id, mergeSameId(existing, updated));
+    } else {
+      mergedMap.set(id, updated);
+    }
   }
 
   // Added items should override same-id base items when both exist.
@@ -120,10 +133,48 @@ function applyEntityOverlay<T extends { id: string }>(
     if (deletedSet.has(added.id)) {
       continue;
     }
-    mergedMap.set(added.id, added);
+    const existing = mergedMap.get(added.id);
+    if (existing && mergeSameId) {
+      mergedMap.set(added.id, mergeSameId(existing, added));
+    } else {
+      mergedMap.set(added.id, added);
+    }
   }
 
   return sortById(Array.from(mergedMap.values()));
+}
+
+function mergeQuestByPolicy(baseQuest: Quest, userQuest: Quest): Quest {
+  const baseReqByMaterialId = new Map(
+    baseQuest.requirements.map((req) => [req.material_id, req]),
+  );
+  const userReqByMaterialId = new Map(
+    userQuest.requirements.map((req) => [req.material_id, req]),
+  );
+
+  const mergedRequirements: RecipeItem[] = baseQuest.requirements.map((baseReq) => {
+    const userReq = userReqByMaterialId.get(baseReq.material_id);
+    return {
+      material_id: baseReq.material_id,
+      quantity: baseReq.quantity,
+      // User preference is preserved while quantity follows latest base data.
+      reserve_required:
+        userReq?.reserve_required ?? baseReq.reserve_required ?? false,
+    };
+  });
+
+  // Keep user-only requirements (custom entries) if they are not in base.
+  for (const userReq of userQuest.requirements) {
+    if (!baseReqByMaterialId.has(userReq.material_id)) {
+      mergedRequirements.push(userReq);
+    }
+  }
+
+  return {
+    id: baseQuest.id,
+    name: baseQuest.name,
+    requirements: mergedRequirements,
+  };
 }
 
 function emptyOverlay(): UserOverlay {
@@ -229,7 +280,7 @@ export function applyOverlay(base: CraftData, overlay: UserOverlay | null): Craf
 
   return {
     materials: applyEntityOverlay(base.materials, overlay.materials),
-    quests: applyEntityOverlay(base.quests, overlay.quests),
+    quests: applyEntityOverlay(base.quests, overlay.quests, mergeQuestByPolicy),
   };
 }
 
