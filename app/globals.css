@@ -229,6 +229,16 @@ textarea {
   font-weight: 600;
 }
 
+.tree-list.child .tree-node {
+  font-size: 0.92rem;
+}
+
+.tree-list.child .tree-kind,
+.tree-list.child .tree-reserve,
+.tree-list.child .tree-qty {
+  font-size: 0.68rem;
+}
+
 .tree-kind {
   border: 1px solid currentColor;
   border-radius: 999px;

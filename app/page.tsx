@@ -11,13 +11,15 @@ function Tree({
   nodes,
   fixedMaterialIds,
   onToggleFixed,
+  depth = 0,
 }: {
   nodes: TreeNode[];
   fixedMaterialIds: Set<string>;
   onToggleFixed: (materialId: string) => void;
+  depth?: number;
 }) {
   return (
-    <ul className="tree-list">
+    <ul className={`tree-list ${depth === 0 ? "root" : "child"}`}>
       {nodes.map((node, index) => (
         <li key={`${node.id}-${index}`} className="tree-item">
           <button
@@ -39,6 +41,7 @@ function Tree({
                 nodes={node.children}
                 fixedMaterialIds={fixedMaterialIds}
                 onToggleFixed={onToggleFixed}
+                depth={depth + 1}
               />
             </div>
           ) : null}
@@ -55,7 +58,6 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [search, setSearch] = useState("");
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
-  const [showIntermediate, setShowIntermediate] = useState(false);
   const [fixedMaterialIds, setFixedMaterialIds] = useState<Set<string>>(new Set<string>());
 
   useEffect(() => {
@@ -128,11 +130,11 @@ export default function HomePage() {
     if (!calculation) {
       return [];
     }
-    const raw = showIntermediate ? calculation.allTotals : calculation.baseTotals;
+    const raw = calculation.baseTotals;
     return Object.entries(raw)
       .map(([id, value]) => ({ id, ...value }))
       .sort((a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name));
-  }, [calculation, showIntermediate]);
+  }, [calculation]);
 
   return (
     <main className="page-grid viewer-page">
@@ -221,17 +223,7 @@ export default function HomePage() {
             </div>
 
             <div className="card">
-              <div className="row-between">
-                <h3>必要素材一覧</h3>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={showIntermediate}
-                    onChange={(e) => setShowIntermediate(e.target.checked)}
-                  />
-                  中間素材を含める
-                </label>
-              </div>
+              <h3>必要素材一覧</h3>
               <table>
                 <thead>
                   <tr>
