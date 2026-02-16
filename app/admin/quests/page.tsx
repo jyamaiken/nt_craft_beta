@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
+import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
 
 function requirementsSummary(quest: Quest, nameById: Map<string, string>): string {
   if (quest.requirements.length === 0) {
@@ -22,18 +23,13 @@ export default function QuestsListPage() {
 
   useEffect(() => {
     (async () => {
-      const [materialsRes, questsRes] = await Promise.all([
-        fetch("/api/materials"),
-        fetch("/api/quests"),
-      ]);
-
-      if (!materialsRes.ok || !questsRes.ok) {
+      try {
+        const loaded = await loadDataPreferUserCache();
+        setMaterials(loaded.data.materials);
+        setQuests(loaded.data.quests);
+      } catch {
         setMessage("クエスト一覧の読み込みに失敗しました。");
-        return;
       }
-
-      setMaterials((await materialsRes.json()) as Material[]);
-      setQuests((await questsRes.json()) as Quest[]);
     })();
   }, []);
 
@@ -71,9 +67,15 @@ export default function QuestsListPage() {
 
     try {
       const next = quests.filter((quest) => quest.id !== questId);
-      await saveQuests(next);
+      let apiWarning = "";
+      try {
+        await saveQuests(next);
+      } catch {
+        apiWarning = " サーバー削除は失敗しましたが、ユーザーキャッシュは更新しました。";
+      }
+      mergeUserCache({ quests: next }, { materials, quests: next });
       setQuests(next);
-      setMessage(`クエスト ${questId} を削除しました。`);
+      setMessage(`クエスト ${questId} を削除しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {
       setMessage(String(error));
     }

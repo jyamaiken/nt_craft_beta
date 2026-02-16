@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { calculateQuestMaterials } from "@/lib/bom";
 import { Material, Quest, TreeNode } from "@/lib/types";
+import { loadDataPreferUserCache } from "@/lib/user-cache";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -35,26 +36,24 @@ export default function HomePage() {
   const [search, setSearch] = useState("");
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
   const [showIntermediate, setShowIntermediate] = useState(false);
+  const [cacheMessage, setCacheMessage] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
         setState("loading");
-        const [materialsRes, questsRes] = await Promise.all([
-          fetch("/api/materials"),
-          fetch("/api/quests"),
-        ]);
-
-        if (!materialsRes.ok || !questsRes.ok) {
-          throw new Error("データの読み込みに失敗しました。");
-        }
-
-        const loadedMaterials = (await materialsRes.json()) as Material[];
-        const loadedQuests = (await questsRes.json()) as Quest[];
+        const loaded = await loadDataPreferUserCache();
+        const loadedMaterials = loaded.data.materials;
+        const loadedQuests = loaded.data.quests;
 
         setMaterials(loadedMaterials);
         setQuests(loadedQuests);
         setSelectedQuestId(loadedQuests[0]?.id ?? null);
+        setCacheMessage(
+          loaded.fromCache
+            ? "ブラウザ保存データを反映中です。管理メニューから初期値に戻せます。"
+            : "",
+        );
         setState("ready");
       } catch (error) {
         setState("error");
@@ -126,6 +125,7 @@ export default function HomePage() {
             <div className="section-head">
               <h2>{selectedQuest.name}</h2>
               <p>{selectedQuest.id}</p>
+              {cacheMessage ? <p className="muted">{cacheMessage}</p> : null}
             </div>
 
             <div className="card">

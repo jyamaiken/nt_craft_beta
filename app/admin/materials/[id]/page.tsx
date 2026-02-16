@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Material } from "@/lib/types";
+import { Material, Quest } from "@/lib/types";
+import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
 
 function createNewMaterial(id: string): Material {
   return {
@@ -17,30 +18,36 @@ export default function MaterialEditPage() {
   const params = useParams<{ id: string }>();
   const [materialId, setMaterialId] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [quests, setQuests] = useState<Quest[]>([]);
   const [editing, setEditing] = useState<Material | null>(null);
   const [message, setMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
-      if (!params.id) {
-        return;
+      try {
+        if (!params.id) {
+          return;
+        }
+        const id = decodeURIComponent(params.id);
+        setMaterialId(id);
+
+        const loaded = await loadDataPreferUserCache();
+        const loadedMaterials = loaded.data.materials;
+        setMaterials(loadedMaterials);
+        setQuests(loaded.data.quests);
+
+        if (id === "new") {
+          setEditing(createNewMaterial("new_material"));
+        } else {
+          const found = loadedMaterials.find((material) => material.id === id);
+          setEditing(found ?? null);
+        }
+      } catch (error) {
+        setMessage(String(error));
+      } finally {
+        setLoaded(true);
       }
-      const id = decodeURIComponent(params.id);
-      setMaterialId(id);
-
-      const materialsRes = await fetch("/api/materials");
-      const loadedMaterials = (await materialsRes.json()) as Material[];
-      setMaterials(loadedMaterials);
-
-      if (id === "new") {
-        setEditing(createNewMaterial("new_material"));
-      } else {
-        const found = loadedMaterials.find((material) => material.id === id);
-        setEditing(found ?? null);
-      }
-
-      setLoaded(true);
     })();
   }, [params.id]);
 
@@ -80,9 +87,15 @@ export default function MaterialEditPage() {
         next.push(editing);
       }
 
-      await saveMaterials(next);
+      let apiWarning = "";
+      try {
+        await saveMaterials(next);
+      } catch {
+        apiWarning = " サーバー保存は失敗しましたが、ユーザーキャッシュには保存しました。";
+      }
+      mergeUserCache({ materials: next }, { materials: next, quests });
       setMaterials(next);
-      setMessage("保存しました。素材リストに戻って確認してください。");
+      setMessage(`保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {
       setMessage(String(error));
     }

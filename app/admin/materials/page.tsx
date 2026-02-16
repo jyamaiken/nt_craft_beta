@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
+import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -33,15 +34,9 @@ export default function MaterialsListPage() {
     (async () => {
       try {
         setState("loading");
-        const [materialsRes, questsRes] = await Promise.all([
-          fetch("/api/materials"),
-          fetch("/api/quests"),
-        ]);
-        if (!materialsRes.ok || !questsRes.ok) {
-          throw new Error("素材一覧の読み込みに失敗しました。");
-        }
-        setMaterials((await materialsRes.json()) as Material[]);
-        setQuests((await questsRes.json()) as Quest[]);
+        const loaded = await loadDataPreferUserCache();
+        setMaterials(loaded.data.materials);
+        setQuests(loaded.data.quests);
         setState("ready");
       } catch (error) {
         setState("error");
@@ -112,9 +107,15 @@ export default function MaterialsListPage() {
 
     try {
       const next = materials.filter((material) => material.id !== materialId);
-      await saveMaterials(next);
+      let apiWarning = "";
+      try {
+        await saveMaterials(next);
+      } catch {
+        apiWarning = " サーバー削除は失敗しましたが、ユーザーキャッシュは更新しました。";
+      }
+      mergeUserCache({ materials: next }, { materials: next, quests });
       setMaterials(next);
-      setMessage(`素材 ${materialId} を削除しました。`);
+      setMessage(`素材 ${materialId} を削除しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {
       setMessage(String(error));
     }

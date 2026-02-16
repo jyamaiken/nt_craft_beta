@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Material, Quest } from "@/lib/types";
+import { loadDataPreferUserCache, writeUserCache } from "@/lib/user-cache";
 
 export default function AdminJsonPage() {
   const [rawMaterials, setRawMaterials] = useState("");
@@ -11,12 +12,9 @@ export default function AdminJsonPage() {
 
   useEffect(() => {
     (async () => {
-      const [materialsRes, questsRes] = await Promise.all([
-        fetch("/api/materials"),
-        fetch("/api/quests"),
-      ]);
-      setRawMaterials(JSON.stringify((await materialsRes.json()) as Material[], null, 2));
-      setRawQuests(JSON.stringify((await questsRes.json()) as Quest[], null, 2));
+      const loaded = await loadDataPreferUserCache();
+      setRawMaterials(JSON.stringify(loaded.data.materials, null, 2));
+      setRawQuests(JSON.stringify(loaded.data.quests, null, 2));
     })();
   }, []);
 
@@ -64,8 +62,14 @@ export default function AdminJsonPage() {
             try {
               const parsedMaterials = JSON.parse(rawMaterials) as Material[];
               const parsedQuests = JSON.parse(rawQuests) as Quest[];
-              await Promise.all([saveMaterials(parsedMaterials), saveQuests(parsedQuests)]);
-              setMessage("JSONを保存しました。");
+              let apiWarning = "";
+              try {
+                await Promise.all([saveMaterials(parsedMaterials), saveQuests(parsedQuests)]);
+              } catch {
+                apiWarning = " サーバー保存は失敗しましたが、ユーザーキャッシュには保存しました。";
+              }
+              writeUserCache({ materials: parsedMaterials, quests: parsedQuests });
+              setMessage(`JSONを保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
             } catch (error) {
               setMessage(String(error));
             }

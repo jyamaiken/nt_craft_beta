@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
+import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
 
 function createNewQuest(id: string): Quest {
   return {
@@ -24,30 +25,30 @@ export default function QuestEditPage() {
 
   useEffect(() => {
     (async () => {
-      if (!params.id) {
-        return;
+      try {
+        if (!params.id) {
+          return;
+        }
+        const id = decodeURIComponent(params.id);
+        setQuestId(id);
+
+        const loaded = await loadDataPreferUserCache();
+        const loadedMaterials = loaded.data.materials;
+        const loadedQuests = loaded.data.quests;
+        setMaterials(loadedMaterials);
+        setQuests(loadedQuests);
+
+        if (id === "new") {
+          setEditing(createNewQuest("new_quest"));
+        } else {
+          const found = loadedQuests.find((quest) => quest.id === id);
+          setEditing(found ?? null);
+        }
+      } catch (error) {
+        setMessage(String(error));
+      } finally {
+        setLoaded(true);
       }
-      const id = decodeURIComponent(params.id);
-      setQuestId(id);
-
-      const [materialsRes, questsRes] = await Promise.all([
-        fetch("/api/materials"),
-        fetch("/api/quests"),
-      ]);
-
-      const loadedMaterials = (await materialsRes.json()) as Material[];
-      const loadedQuests = (await questsRes.json()) as Quest[];
-      setMaterials(loadedMaterials);
-      setQuests(loadedQuests);
-
-      if (id === "new") {
-        setEditing(createNewQuest("new_quest"));
-      } else {
-        const found = loadedQuests.find((quest) => quest.id === id);
-        setEditing(found ?? null);
-      }
-
-      setLoaded(true);
     })();
   }, [params.id]);
 
@@ -87,9 +88,15 @@ export default function QuestEditPage() {
         next.push(editing);
       }
 
-      await saveQuests(next);
+      let apiWarning = "";
+      try {
+        await saveQuests(next);
+      } catch {
+        apiWarning = " サーバー保存は失敗しましたが、ユーザーキャッシュには保存しました。";
+      }
+      mergeUserCache({ quests: next }, { materials, quests: next });
       setQuests(next);
-      setMessage("保存しました。クエストリストに戻って確認してください。");
+      setMessage(`保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {
       setMessage(String(error));
     }
