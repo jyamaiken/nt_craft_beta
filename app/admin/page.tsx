@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
 
@@ -77,7 +78,12 @@ export default function AdminPage() {
 
   return (
     <main className="admin-page">
-      <h2>管理画面</h2>
+      <div className="row-between">
+        <h2>管理画面</h2>
+        <Link href="/admin/list" className="text-link">
+          登録済み一覧へ
+        </Link>
+      </div>
 
       <div className="tabs">
         <button onClick={() => setActiveTab("materials")} className={activeTab === "materials" ? "selected" : ""}>素材</button>
