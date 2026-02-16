@@ -128,13 +128,13 @@ export default function MaterialEditPage() {
           </label>
         </div>
 
-        <label>
+        <label className="inline-check">
+          <span>基礎素材（レシピなし）</span>
           <input
             type="checkbox"
             checked={editing.recipe === null}
             onChange={(e) => setEditing({ ...editing, recipe: e.target.checked ? null : [] })}
           />
-          基礎素材 (recipeなし)
         </label>
 
         {editing.recipe !== null ? (

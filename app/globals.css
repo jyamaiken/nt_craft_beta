@@ -299,6 +299,13 @@ label {
   gap: 0.25rem;
 }
 
+.inline-check {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 input,
 select,
 textarea {

@@ -12,8 +12,14 @@ function recipeSummary(material: Material, nameById: Map<string, string>): strin
   }
 
   return material.recipe
-    .map((item) => `${nameById.get(item.material_id) ?? item.material_id} x${item.quantity}`)
-    .join(", ");
+    .map((item) => {
+      const materialName = nameById.get(item.material_id);
+      if (!materialName) {
+        return `未登録素材（${item.material_id}）${item.quantity}個`;
+      }
+      return `${materialName} ${item.quantity}個`;
+    })
+    .join("、");
 }
 
 export default function MaterialsListPage() {
