@@ -1,0 +1,10 @@
+[
+  {
+    "id": "quest_001",
+    "name": "はじめての納品",
+    "requirements": [
+      { "material_id": "usb_2.0", "quantity": 1 },
+      { "material_id": "iron", "quantity": 5 }
+    ]
+  }
+]

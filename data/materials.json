@@ -1,0 +1,28 @@
+[
+  {
+    "id": "usb_2.0",
+    "name": "USBメモリ2.0",
+    "recipe": [
+      { "material_id": "iron", "quantity": 2 },
+      { "material_id": "gold", "quantity": 1 }
+    ]
+  },
+  {
+    "id": "gold",
+    "name": "金",
+    "recipe": [
+      { "material_id": "steel", "quantity": 1 },
+      { "material_id": "iron", "quantity": 1 }
+    ]
+  },
+  {
+    "id": "iron",
+    "name": "鉄",
+    "recipe": null
+  },
+  {
+    "id": "steel",
+    "name": "鋼",
+    "recipe": null
+  }
+]
