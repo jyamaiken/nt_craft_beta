@@ -19,6 +19,7 @@ export type TreeNode = {
   id: string;
   name: string;
   quantity: number;
+  fixed: boolean;
   children: TreeNode[];
 };
 

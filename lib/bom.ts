@@ -21,6 +21,7 @@ function expandNode(
   materialsById: Map<string, Material>,
   baseTotals: Record<string, { name: string; quantity: number }>,
   allTotals: Record<string, { name: string; quantity: number }>,
+  fixedMaterialIds: Set<string>,
   stack: string[],
 ): TreeNode {
   const material = materialsById.get(materialId);
@@ -33,14 +34,21 @@ function expandNode(
     throw new Error(`Circular recipe detected: ${chain}`);
   }
 
-  addTotal(allTotals, material, quantity);
+  const fixed = fixedMaterialIds.has(material.id);
 
   const node: TreeNode = {
     id: material.id,
     name: material.name,
     quantity,
+    fixed,
     children: [],
   };
+
+  if (fixed) {
+    return node;
+  }
+
+  addTotal(allTotals, material, quantity);
 
   if (isBaseMaterial(material)) {
     addTotal(baseTotals, material, quantity);
@@ -57,6 +65,7 @@ function expandNode(
         materialsById,
         baseTotals,
         allTotals,
+        fixedMaterialIds,
         nextStack,
       ),
     );
@@ -68,6 +77,7 @@ function expandNode(
 export function calculateQuestMaterials(
   requirements: RecipeItem[],
   materials: Material[],
+  fixedMaterialIds: Set<string> = new Set<string>(),
 ): CalculationResult {
   const materialsById = new Map<string, Material>(materials.map((m) => [m.id, m]));
   const baseTotals: Record<string, { name: string; quantity: number }> = {};
@@ -80,6 +90,7 @@ export function calculateQuestMaterials(
       materialsById,
       baseTotals,
       allTotals,
+      fixedMaterialIds,
       [],
     ),
   );

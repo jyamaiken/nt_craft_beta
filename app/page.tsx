@@ -7,19 +7,38 @@ import { loadDataWithOverlay } from "@/lib/user-cache";
 
 type LoadState = "loading" | "ready" | "error";
 
-function Tree({ nodes }: { nodes: TreeNode[] }) {
+function Tree({
+  nodes,
+  fixedMaterialIds,
+  onToggleFixed,
+}: {
+  nodes: TreeNode[];
+  fixedMaterialIds: Set<string>;
+  onToggleFixed: (materialId: string) => void;
+}) {
   return (
     <ul className="tree-list">
       {nodes.map((node, index) => (
         <li key={`${node.id}-${index}`} className="tree-item">
-          <div className={`tree-node ${node.children.length > 0 ? "branch" : "leaf"}`}>
+          <button
+            type="button"
+            className={`tree-node ${node.children.length > 0 ? "branch" : "leaf"} ${node.fixed ? "fixed" : ""}`}
+            onClick={() => onToggleFixed(node.id)}
+            title={fixedMaterialIds.has(node.id) ? "固定を解除" : "所持済みとして固定"}
+          >
             <span className="tree-name">{node.name}</span>
-            <span className="tree-kind">{node.children.length > 0 ? "合成" : "基礎"}</span>
+            <span className="tree-kind">
+              {node.fixed ? "固定" : node.children.length > 0 ? "合成" : "基礎"}
+            </span>
             <span className="tree-qty">x{node.quantity}</span>
-          </div>
+          </button>
           {node.children.length > 0 ? (
             <div className="tree-children">
-              <Tree nodes={node.children} />
+              <Tree
+                nodes={node.children}
+                fixedMaterialIds={fixedMaterialIds}
+                onToggleFixed={onToggleFixed}
+              />
             </div>
           ) : null}
         </li>
@@ -37,6 +56,7 @@ export default function HomePage() {
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
   const [showIntermediate, setShowIntermediate] = useState(false);
   const [cacheMessage, setCacheMessage] = useState("");
+  const [fixedMaterialIds, setFixedMaterialIds] = useState<Set<string>>(new Set<string>());
 
   useEffect(() => {
     (async () => {
@@ -82,8 +102,21 @@ export default function HomePage() {
     if (!selectedQuest || materials.length === 0) {
       return null;
     }
-    return calculateQuestMaterials(selectedQuest.requirements, materials);
-  }, [selectedQuest, materials]);
+    return calculateQuestMaterials(selectedQuest.requirements, materials, fixedMaterialIds);
+  }, [selectedQuest, materials, fixedMaterialIds]);
+
+  const materialNameById = useMemo(
+    () => new Map<string, string>(materials.map((material) => [material.id, material.name])),
+    [materials],
+  );
+
+  const fixedMaterialList = useMemo(
+    () =>
+      Array.from(fixedMaterialIds)
+        .map((id) => ({ id, name: materialNameById.get(id) ?? id }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [fixedMaterialIds, materialNameById],
+  );
 
   const totals = useMemo(() => {
     if (!calculation) {
@@ -137,9 +170,48 @@ export default function HomePage() {
                 <p className="tree-legend">
                   <span className="legend-chip branch">合成</span>
                   <span className="legend-chip leaf">基礎</span>
+                  <span className="legend-chip fixed">固定</span>
                 </p>
               </div>
-              <Tree nodes={calculation.tree} />
+              <p className="muted">素材をクリックすると「所持済みとして固定/解除」できます。</p>
+              {fixedMaterialList.length > 0 ? (
+                <div className="fixed-list">
+                  <strong>固定中:</strong>
+                  {fixedMaterialList.map((item) => (
+                    <button
+                      key={item.id}
+                      className="fixed-chip"
+                      onClick={() =>
+                        setFixedMaterialIds((prev) => {
+                          const next = new Set(prev);
+                          next.delete(item.id);
+                          return next;
+                        })
+                      }
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                  <button className="danger" onClick={() => setFixedMaterialIds(new Set<string>())}>
+                    すべて解除
+                  </button>
+                </div>
+              ) : null}
+              <Tree
+                nodes={calculation.tree}
+                fixedMaterialIds={fixedMaterialIds}
+                onToggleFixed={(materialId) =>
+                  setFixedMaterialIds((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(materialId)) {
+                      next.delete(materialId);
+                    } else {
+                      next.add(materialId);
+                    }
+                    return next;
+                  })
+                }
+              />
             </div>
 
             <div className="card">
@@ -170,6 +242,11 @@ export default function HomePage() {
                       <td>{item.quantity}</td>
                     </tr>
                   ))}
+                  {totals.length === 0 ? (
+                    <tr>
+                      <td colSpan={3}>必要素材はありません（固定設定により全て充足）。</td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>
