@@ -95,27 +95,35 @@ function applyEntityOverlay<T extends { id: string }>(
   overlay: EntityOverlay<T>,
 ): T[] {
   const deletedSet = new Set(overlay.deleted);
-  const updatedMap = new Map(Object.entries(overlay.updated));
+  const mergedMap = new Map<string, T>();
 
-  const merged: T[] = [];
-
+  // Start from base items and apply updates on top.
   for (const baseItem of baseItems) {
     if (deletedSet.has(baseItem.id)) {
       continue;
     }
-
-    const updated = updatedMap.get(baseItem.id);
-    merged.push(updated ?? baseItem);
+    const updated = overlay.updated[baseItem.id];
+    mergedMap.set(baseItem.id, updated ?? baseItem);
   }
 
+  // Apply updates that do not exist in base (legacy/edge overlays).
+  for (const [id, updated] of Object.entries(overlay.updated)) {
+    if (deletedSet.has(id)) {
+      continue;
+    }
+    mergedMap.set(id, updated);
+  }
+
+  // Added items should override same-id base items when both exist.
+  // This prevents duplicate rows after base JSON catches up with prior user additions.
   for (const added of overlay.added) {
     if (deletedSet.has(added.id)) {
       continue;
     }
-    merged.push(added);
+    mergedMap.set(added.id, added);
   }
 
-  return sortById(merged);
+  return sortById(Array.from(mergedMap.values()));
 }
 
 function emptyOverlay(): UserOverlay {
