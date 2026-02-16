@@ -10,11 +10,17 @@ function Tree({ nodes }: { nodes: TreeNode[] }) {
   return (
     <ul className="tree-list">
       {nodes.map((node, index) => (
-        <li key={`${node.id}-${index}`}>
-          <div className="tree-node">
-            {node.name} x{node.quantity}
+        <li key={`${node.id}-${index}`} className="tree-item">
+          <div className={`tree-node ${node.children.length > 0 ? "branch" : "leaf"}`}>
+            <span className="tree-name">{node.name}</span>
+            <span className="tree-kind">{node.children.length > 0 ? "合成" : "基礎"}</span>
+            <span className="tree-qty">x{node.quantity}</span>
           </div>
-          {node.children.length > 0 ? <Tree nodes={node.children} /> : null}
+          {node.children.length > 0 ? (
+            <div className="tree-children">
+              <Tree nodes={node.children} />
+            </div>
+          ) : null}
         </li>
       ))}
     </ul>
@@ -123,7 +129,13 @@ export default function HomePage() {
             </div>
 
             <div className="card">
-              <h3>合成ツリー</h3>
+              <div className="row-between">
+                <h3>合成ツリー</h3>
+                <p className="tree-legend">
+                  <span className="legend-chip branch">合成</span>
+                  <span className="legend-chip leaf">基礎</span>
+                </p>
+              </div>
               <Tree nodes={calculation.tree} />
             </div>
 

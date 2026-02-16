@@ -129,12 +129,102 @@ textarea {
 .tree-list {
   list-style: none;
   margin: 0;
-  padding-left: 1rem;
-  border-left: 2px solid #dbe5f0;
+  padding-left: 0;
 }
 
 .tree-node {
-  padding: 0.2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 280px;
+  width: fit-content;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.tree-item {
+  position: relative;
+  margin: 0.45rem 0;
+  padding-left: 1rem;
+}
+
+.tree-item::before {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  left: 0;
+  width: 0.7rem;
+  border-top: 2px solid #c3d4e8;
+}
+
+.tree-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  bottom: -0.7rem;
+  border-left: 2px solid #d8e4f2;
+}
+
+.tree-children {
+  margin-left: 0.8rem;
+}
+
+.tree-node.branch {
+  border-color: #9cbddd;
+  background: #edf5fd;
+}
+
+.tree-node.leaf {
+  border-color: #b8d4bb;
+  background: #f1fbf2;
+}
+
+.tree-name {
+  font-weight: 600;
+}
+
+.tree-kind {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tree-qty {
+  margin-left: auto;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 0.05rem 0.5rem;
+  font-weight: 700;
+  border: 1px solid var(--line);
+}
+
+.tree-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+}
+
+.legend-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.legend-chip.branch {
+  background: #edf5fd;
+  border-color: #9cbddd;
+}
+
+.legend-chip.leaf {
+  background: #f1fbf2;
+  border-color: #b8d4bb;
 }
 
 table {
