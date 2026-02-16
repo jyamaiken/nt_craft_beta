@@ -77,18 +77,40 @@ export default function MaterialEditPage() {
     }
 
     try {
+      const normalizedId = editing.id.trim();
+      const normalizedName = editing.name.trim();
+      if (!normalizedId || !normalizedName) {
+        throw new Error("素材IDと素材名は必須です。");
+      }
+      if (editing.recipe && editing.recipe.some((item) => !item.material_id.trim())) {
+        throw new Error("レシピに未選択の素材があります。");
+      }
+
+      const normalizedEditing: Material = {
+        ...editing,
+        id: normalizedId,
+        name: normalizedName,
+        recipe:
+          editing.recipe === null
+            ? null
+            : editing.recipe.map((item) => ({
+                material_id: item.material_id.trim(),
+                quantity: item.quantity,
+              })),
+      };
+
       const existingIndex = materials.findIndex((material) => material.id === materialId);
       const next = [...materials];
 
       if (materialId === "new") {
-        if (materials.some((material) => material.id === editing.id)) {
-          throw new Error(`ID ${editing.id} は既に存在します。`);
+        if (materials.some((material) => material.id === normalizedEditing.id)) {
+          throw new Error(`ID ${normalizedEditing.id} は既に存在します。`);
         }
-        next.push(editing);
+        next.push(normalizedEditing);
       } else if (existingIndex >= 0) {
-        next[existingIndex] = editing;
+        next[existingIndex] = normalizedEditing;
       } else {
-        next.push(editing);
+        next.push(normalizedEditing);
       }
 
       let apiWarning = "";

@@ -78,18 +78,37 @@ export default function QuestEditPage() {
     }
 
     try {
+      const normalizedId = editing.id.trim();
+      const normalizedName = editing.name.trim();
+      if (!normalizedId || !normalizedName) {
+        throw new Error("クエストIDとクエスト名は必須です。");
+      }
+      if (editing.requirements.some((item) => !item.material_id.trim())) {
+        throw new Error("必要素材に未選択の素材があります。");
+      }
+
+      const normalizedEditing: Quest = {
+        ...editing,
+        id: normalizedId,
+        name: normalizedName,
+        requirements: editing.requirements.map((item) => ({
+          material_id: item.material_id.trim(),
+          quantity: item.quantity,
+        })),
+      };
+
       const existingIndex = quests.findIndex((quest) => quest.id === questId);
       const next = [...quests];
 
       if (questId === "new") {
-        if (quests.some((quest) => quest.id === editing.id)) {
-          throw new Error(`ID ${editing.id} は既に存在します。`);
+        if (quests.some((quest) => quest.id === normalizedEditing.id)) {
+          throw new Error(`ID ${normalizedEditing.id} は既に存在します。`);
         }
-        next.push(editing);
+        next.push(normalizedEditing);
       } else if (existingIndex >= 0) {
-        next[existingIndex] = editing;
+        next[existingIndex] = normalizedEditing;
       } else {
-        next.push(editing);
+        next.push(normalizedEditing);
       }
 
       let apiWarning = "";

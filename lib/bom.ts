@@ -26,12 +26,38 @@ function expandNode(
 ): TreeNode {
   const material = materialsById.get(materialId);
   if (!material) {
-    throw new Error(`Unknown material id: ${materialId}`);
+    const unknownId = materialId || "(empty)";
+    const unknownName = `未定義素材(${unknownId})`;
+    const unknownNode: TreeNode = {
+      id: unknownId,
+      name: unknownName,
+      quantity,
+      fixed: false,
+      children: [],
+    };
+    if (!allTotals[unknownId]) {
+      allTotals[unknownId] = { name: unknownName, quantity: 0 };
+    }
+    if (!baseTotals[unknownId]) {
+      baseTotals[unknownId] = { name: unknownName, quantity: 0 };
+    }
+    allTotals[unknownId].quantity += quantity;
+    baseTotals[unknownId].quantity += quantity;
+    return unknownNode;
   }
 
   if (stack.includes(materialId)) {
-    const chain = [...stack, materialId].join(" -> ");
-    throw new Error(`Circular recipe detected: ${chain}`);
+    const cycleName = `${material.name}(循環参照)`;
+    const cycleNode: TreeNode = {
+      id: material.id,
+      name: cycleName,
+      quantity,
+      fixed: false,
+      children: [],
+    };
+    addTotal(allTotals, material, quantity);
+    addTotal(baseTotals, material, quantity);
+    return cycleNode;
   }
 
   const fixed = fixedMaterialIds.has(material.id);
