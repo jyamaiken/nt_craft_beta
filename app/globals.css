@@ -364,8 +364,8 @@ textarea {
   color: var(--danger);
 }
 
-.list-page table td:nth-child(4),
-.list-page table th:nth-child(4) {
+.list-page table td:nth-child(5),
+.list-page table th:nth-child(5) {
   min-width: 280px;
 }
 

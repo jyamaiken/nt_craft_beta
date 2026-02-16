@@ -80,7 +80,9 @@ export default function MaterialsListPage() {
     }
     return materials.filter(
       (material) =>
-        material.id.toLowerCase().includes(keyword) || material.name.toLowerCase().includes(keyword),
+        material.id.toLowerCase().includes(keyword) ||
+        material.name.toLowerCase().includes(keyword) ||
+        (material.acquisition_note ?? "").toLowerCase().includes(keyword),
     );
   }, [filter, materials]);
 
@@ -163,6 +165,7 @@ export default function MaterialsListPage() {
                 <th>ID</th>
                 <th>素材名</th>
                 <th>種別</th>
+                <th>入手メモ</th>
                 <th>レシピ</th>
                 <th>参照(レシピ)</th>
                 <th>参照(クエスト)</th>
@@ -175,6 +178,7 @@ export default function MaterialsListPage() {
                   <td>{material.id}</td>
                   <td>{material.name}</td>
                   <td>{material.recipe && material.recipe.length > 0 ? "合成素材" : "基礎素材"}</td>
+                  <td>{material.acquisition_note || "-"}</td>
                   <td>{recipeSummary(material, nameById)}</td>
                   <td>{refs.refsInRecipes[material.id] ?? 0}</td>
                   <td>{refs.refsInQuests[material.id] ?? 0}</td>

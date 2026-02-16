@@ -111,6 +111,10 @@ export default function HomePage() {
     () => new Map<string, string>(materials.map((material) => [material.id, material.name])),
     [materials],
   );
+  const materialById = useMemo(
+    () => new Map<string, Material>(materials.map((material) => [material.id, material])),
+    [materials],
+  );
 
   const fixedMaterialList = useMemo(
     () =>
@@ -235,6 +239,7 @@ export default function HomePage() {
                     <th>素材名</th>
                     <th>数量</th>
                     <th>備考</th>
+                    <th>入手メモ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -244,11 +249,12 @@ export default function HomePage() {
                       <td>{item.name}</td>
                       <td>{item.quantity}</td>
                       <td>{reserveRequiredIds.has(item.id) ? "予備必要" : ""}</td>
+                      <td>{materialById.get(item.id)?.acquisition_note || "-"}</td>
                     </tr>
                   ))}
                   {totals.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>必要素材はありません（固定設定により全て充足）。</td>
+                      <td colSpan={5}>必要素材はありません（固定設定により全て充足）。</td>
                     </tr>
                   ) : null}
                 </tbody>

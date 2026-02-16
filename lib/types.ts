@@ -7,6 +7,7 @@ export type RecipeItem = {
 export type Material = {
   id: string;
   name: string;
+  acquisition_note?: string;
   recipe: RecipeItem[] | null;
 };
 

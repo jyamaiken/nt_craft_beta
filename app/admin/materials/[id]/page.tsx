@@ -10,6 +10,7 @@ function createNewMaterial(id: string): Material {
   return {
     id,
     name: "新規素材",
+    acquisition_note: "",
     recipe: null,
   };
 }
@@ -91,6 +92,7 @@ export default function MaterialEditPage() {
         ...editing,
         id: normalizedId,
         name: normalizedName,
+        acquisition_note: (editing.acquisition_note ?? "").trim(),
         recipe:
           editing.recipe === null
             ? null
@@ -174,6 +176,16 @@ export default function MaterialEditPage() {
             />
           </label>
         </div>
+
+        <label>
+          入手メモ
+          <textarea
+            rows={3}
+            value={editing.acquisition_note ?? ""}
+            onChange={(e) => setEditing({ ...editing, acquisition_note: e.target.value })}
+            placeholder="例: 北の鉱山で採掘 / 交換所で購入"
+          />
+        </label>
 
         <label className="inline-check">
           <span>基礎素材（レシピなし）</span>
