@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
-import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
+import { fetchBaseData, loadDataWithOverlay, saveUserEffectiveData } from "@/lib/user-cache";
 
 function createNewMaterial(id: string): Material {
   return {
@@ -19,6 +19,8 @@ export default function MaterialEditPage() {
   const [materialId, setMaterialId] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
+  const [baseMaterials, setBaseMaterials] = useState<Material[]>([]);
+  const [baseQuests, setBaseQuests] = useState<Quest[]>([]);
   const [editing, setEditing] = useState<Material | null>(null);
   const [message, setMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -32,10 +34,12 @@ export default function MaterialEditPage() {
         const id = decodeURIComponent(params.id);
         setMaterialId(id);
 
-        const loaded = await loadDataPreferUserCache();
-        const loadedMaterials = loaded.data.materials;
+        const loaded = await loadDataWithOverlay();
+        const loadedMaterials = loaded.effectiveData.materials;
         setMaterials(loadedMaterials);
-        setQuests(loaded.data.quests);
+        setQuests(loaded.effectiveData.quests);
+        setBaseMaterials(loaded.baseData.materials);
+        setBaseQuests(loaded.baseData.quests);
 
         if (id === "new") {
           setEditing(createNewMaterial("new_material"));
@@ -93,7 +97,11 @@ export default function MaterialEditPage() {
       } catch {
         apiWarning = " サーバー保存は失敗しましたが、ユーザーキャッシュには保存しました。";
       }
-      mergeUserCache({ materials: next }, { materials: next, quests });
+      const baseData =
+        baseMaterials.length > 0 || baseQuests.length > 0
+          ? { materials: baseMaterials, quests: baseQuests }
+          : await fetchBaseData();
+      await saveUserEffectiveData({ materials: next, quests }, baseData);
       setMaterials(next);
       setMessage(`保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {

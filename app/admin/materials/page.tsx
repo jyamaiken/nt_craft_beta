@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
-import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
+import { fetchBaseData, loadDataWithOverlay, saveUserEffectiveData } from "@/lib/user-cache";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -27,6 +27,8 @@ export default function MaterialsListPage() {
   const [state, setState] = useState<LoadState>("loading");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
+  const [baseMaterials, setBaseMaterials] = useState<Material[]>([]);
+  const [baseQuests, setBaseQuests] = useState<Quest[]>([]);
   const [filter, setFilter] = useState("");
   const [message, setMessage] = useState("");
 
@@ -34,9 +36,11 @@ export default function MaterialsListPage() {
     (async () => {
       try {
         setState("loading");
-        const loaded = await loadDataPreferUserCache();
-        setMaterials(loaded.data.materials);
-        setQuests(loaded.data.quests);
+        const loaded = await loadDataWithOverlay();
+        setMaterials(loaded.effectiveData.materials);
+        setQuests(loaded.effectiveData.quests);
+        setBaseMaterials(loaded.baseData.materials);
+        setBaseQuests(loaded.baseData.quests);
         setState("ready");
       } catch (error) {
         setState("error");
@@ -113,7 +117,11 @@ export default function MaterialsListPage() {
       } catch {
         apiWarning = " サーバー削除は失敗しましたが、ユーザーキャッシュは更新しました。";
       }
-      mergeUserCache({ materials: next }, { materials: next, quests });
+      const baseData =
+        baseMaterials.length > 0 || baseQuests.length > 0
+          ? { materials: baseMaterials, quests: baseQuests }
+          : await fetchBaseData();
+      await saveUserEffectiveData({ materials: next, quests }, baseData);
       setMaterials(next);
       setMessage(`素材 ${materialId} を削除しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { calculateQuestMaterials } from "@/lib/bom";
 import { Material, Quest, TreeNode } from "@/lib/types";
-import { loadDataPreferUserCache } from "@/lib/user-cache";
+import { loadDataWithOverlay } from "@/lib/user-cache";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -42,18 +42,21 @@ export default function HomePage() {
     (async () => {
       try {
         setState("loading");
-        const loaded = await loadDataPreferUserCache();
-        const loadedMaterials = loaded.data.materials;
-        const loadedQuests = loaded.data.quests;
+        const loaded = await loadDataWithOverlay();
+        const loadedMaterials = loaded.effectiveData.materials;
+        const loadedQuests = loaded.effectiveData.quests;
 
         setMaterials(loadedMaterials);
         setQuests(loadedQuests);
         setSelectedQuestId(loadedQuests[0]?.id ?? null);
         setCacheMessage(
-          loaded.fromCache
+          loaded.hasOverlay
             ? "ブラウザ保存データを反映中です。管理メニューから初期値に戻せます。"
             : "",
         );
+        if (loaded.baseUpdatedSinceOverlay) {
+          setCacheMessage("ベースデータ更新を検知し、ユーザー編集差分を再適用しています。");
+        }
         setState("ready");
       } catch (error) {
         setState("error");

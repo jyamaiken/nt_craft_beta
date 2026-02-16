@@ -2,19 +2,28 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { clearUserCache, readUserCache } from "@/lib/user-cache";
+import { clearUserCache, getCacheInfo } from "@/lib/user-cache";
 
 export default function AdminHomePage() {
   const [cacheInfo, setCacheInfo] = useState<string>("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const cache = readUserCache();
-    if (!cache) {
-      setCacheInfo("ユーザーキャッシュは未保存です。");
-      return;
-    }
-    setCacheInfo(`最終保存: ${new Date(cache.savedAt).toLocaleString("ja-JP")}`);
+    (async () => {
+      const cache = await getCacheInfo();
+      if (!cache.hasOverlay) {
+        setCacheInfo("ユーザーキャッシュは未保存です。");
+        return;
+      }
+
+      const updatedInfo = cache.baseUpdatedSinceOverlay
+        ? "（ベース更新あり: 差分再適用中）"
+        : "";
+      const savedAtText = cache.savedAt
+        ? new Date(cache.savedAt).toLocaleString("ja-JP")
+        : "不明";
+      setCacheInfo(`最終保存: ${savedAtText} ${updatedInfo}`);
+    })();
   }, []);
 
   function resetToDefault() {

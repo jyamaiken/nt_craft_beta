@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Material, Quest } from "@/lib/types";
-import { loadDataPreferUserCache, writeUserCache } from "@/lib/user-cache";
+import { fetchBaseData, loadDataWithOverlay, saveUserEffectiveData } from "@/lib/user-cache";
 
 export default function AdminJsonPage() {
   const [rawMaterials, setRawMaterials] = useState("");
   const [rawQuests, setRawQuests] = useState("");
+  const [baseMaterials, setBaseMaterials] = useState<Material[]>([]);
+  const [baseQuests, setBaseQuests] = useState<Quest[]>([]);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     (async () => {
-      const loaded = await loadDataPreferUserCache();
-      setRawMaterials(JSON.stringify(loaded.data.materials, null, 2));
-      setRawQuests(JSON.stringify(loaded.data.quests, null, 2));
+      const loaded = await loadDataWithOverlay();
+      setRawMaterials(JSON.stringify(loaded.effectiveData.materials, null, 2));
+      setRawQuests(JSON.stringify(loaded.effectiveData.quests, null, 2));
+      setBaseMaterials(loaded.baseData.materials);
+      setBaseQuests(loaded.baseData.quests);
     })();
   }, []);
 
@@ -68,7 +72,14 @@ export default function AdminJsonPage() {
               } catch {
                 apiWarning = " サーバー保存は失敗しましたが、ユーザーキャッシュには保存しました。";
               }
-              writeUserCache({ materials: parsedMaterials, quests: parsedQuests });
+              const baseData =
+                baseMaterials.length > 0 || baseQuests.length > 0
+                  ? { materials: baseMaterials, quests: baseQuests }
+                  : await fetchBaseData();
+              await saveUserEffectiveData(
+                { materials: parsedMaterials, quests: parsedQuests },
+                baseData,
+              );
               setMessage(`JSONを保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
             } catch (error) {
               setMessage(String(error));

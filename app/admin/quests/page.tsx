@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
-import { loadDataPreferUserCache, mergeUserCache } from "@/lib/user-cache";
+import { fetchBaseData, loadDataWithOverlay, saveUserEffectiveData } from "@/lib/user-cache";
 
 function requirementsSummary(quest: Quest, nameById: Map<string, string>): string {
   if (quest.requirements.length === 0) {
@@ -18,15 +18,19 @@ function requirementsSummary(quest: Quest, nameById: Map<string, string>): strin
 export default function QuestsListPage() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [baseMaterials, setBaseMaterials] = useState<Material[]>([]);
+  const [baseQuests, setBaseQuests] = useState<Quest[]>([]);
   const [filter, setFilter] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
-        const loaded = await loadDataPreferUserCache();
-        setMaterials(loaded.data.materials);
-        setQuests(loaded.data.quests);
+        const loaded = await loadDataWithOverlay();
+        setMaterials(loaded.effectiveData.materials);
+        setQuests(loaded.effectiveData.quests);
+        setBaseMaterials(loaded.baseData.materials);
+        setBaseQuests(loaded.baseData.quests);
       } catch {
         setMessage("クエスト一覧の読み込みに失敗しました。");
       }
@@ -73,7 +77,11 @@ export default function QuestsListPage() {
       } catch {
         apiWarning = " サーバー削除は失敗しましたが、ユーザーキャッシュは更新しました。";
       }
-      mergeUserCache({ quests: next }, { materials, quests: next });
+      const baseData =
+        baseMaterials.length > 0 || baseQuests.length > 0
+          ? { materials: baseMaterials, quests: baseQuests }
+          : await fetchBaseData();
+      await saveUserEffectiveData({ materials, quests: next }, baseData);
       setQuests(next);
       setMessage(`クエスト ${questId} を削除しました。ユーザーキャッシュも更新しました。${apiWarning}`);
     } catch (error) {
