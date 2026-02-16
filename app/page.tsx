@@ -135,7 +135,7 @@ export default function HomePage() {
   }, [calculation, showIntermediate]);
 
   return (
-    <main className="page-grid">
+    <main className="page-grid viewer-page">
       <aside className="sidebar">
         <h2>クエスト一覧</h2>
         <input
