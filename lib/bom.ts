@@ -45,6 +45,9 @@ function expandNode(
   };
 
   if (fixed) {
+    // Fixed materials are treated as directly required items.
+    addTotal(allTotals, material, quantity);
+    addTotal(baseTotals, material, quantity);
     return node;
   }
 
