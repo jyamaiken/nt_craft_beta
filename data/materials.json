@@ -1,28 +1,124 @@
 [
   {
+    "id": "copper_ingot",
+    "name": "銅のインゴット",
+    "acquisition_note": "",
+    "recipe": null
+  },
+  {
+    "id": "diamond",
+    "name": "ダイヤモンド",
+    "recipe": null
+  },
+  {
+    "id": "diamond_drill_pit",
+    "name": "ダイヤモンドドリルピット",
+    "recipe": [
+      {
+        "material_id": "diamond",
+        "quantity": 40
+      }
+    ]
+  },
+  {
+    "id": "electronic_kit",
+    "name": "電子キット",
+    "recipe": [
+      {
+        "material_id": "precious_metal",
+        "quantity": 1
+      },
+      {
+        "material_id": "copper_ingot",
+        "quantity": 1
+      }
+    ],
+    "acquisition_note": ""
+  },
+  {
+    "id": "gold_ingot",
+    "name": "金のインゴット",
+    "recipe": null,
+    "acquisition_note": ""
+  },
+  {
+    "id": "iron_ingot",
+    "name": "鉄のインゴット",
+    "recipe": null,
+    "acquisition_note": ""
+  },
+  {
+    "id": "laptop_2",
+    "name": "犯罪用ノートPC-2",
+    "recipe": [
+      {
+        "material_id": "metal_bond",
+        "quantity": 5
+      },
+      {
+        "material_id": "electronic_kit",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "medium_cutter",
+    "name": "犯罪用中型カッター",
+    "recipe": [
+      {
+        "material_id": "metal_bond",
+        "quantity": 5
+      },
+      {
+        "material_id": "steel_ingot",
+        "quantity": 1
+      }
+    ],
+    "acquisition_note": ""
+  },
+  {
+    "id": "medium_drill",
+    "name": "犯罪用中型ドリル",
+    "recipe": [
+      {
+        "material_id": "diamond_drill_pit",
+        "quantity": 2
+      },
+      {
+        "material_id": "metal_bond",
+        "quantity": 5
+      }
+    ]
+  },
+  {
+    "id": "metal_bond",
+    "name": "金属接合剤",
+    "recipe": null
+  },
+  {
+    "id": "precious_metal",
+    "name": "貴金属",
+    "acquisition_note": "",
+    "recipe": null
+  },
+  {
+    "id": "steel_ingot",
+    "name": "鋼鉄のインゴット",
+    "recipe": null,
+    "acquisition_note": ""
+  },
+  {
     "id": "usb_2.0",
-    "name": "USBメモリ2.0",
+    "name": "犯罪用USBメモリ2.0",
     "recipe": [
-      { "material_id": "iron", "quantity": 2 },
-      { "material_id": "gold", "quantity": 1 }
+      {
+        "material_id": "metal_bond",
+        "quantity": 5
+      },
+      {
+        "material_id": "electronic_kit",
+        "quantity": 2
+      }
     ]
-  },
-  {
-    "id": "gold",
-    "name": "金",
-    "recipe": [
-      { "material_id": "steel", "quantity": 1 },
-      { "material_id": "iron", "quantity": 1 }
-    ]
-  },
-  {
-    "id": "iron",
-    "name": "鉄",
-    "recipe": null
-  },
-  {
-    "id": "steel",
-    "name": "鋼",
-    "recipe": null
   }
 ]

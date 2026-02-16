@@ -1,10 +1,23 @@
 [
   {
-    "id": "quest_001",
-    "name": "はじめての納品",
+    "id": "Pareto_Bank",
+    "name": "パレト銀行",
     "requirements": [
-      { "material_id": "usb_2.0", "quantity": 1 },
-      { "material_id": "iron", "quantity": 5 }
+      {
+        "material_id": "laptop_2",
+        "quantity": 1,
+        "reserve_required": false
+      },
+      {
+        "material_id": "medium_drill",
+        "quantity": 3,
+        "reserve_required": false
+      },
+      {
+        "material_id": "usb_2.0",
+        "quantity": 3,
+        "reserve_required": true
+      }
     ]
   }
 ]
