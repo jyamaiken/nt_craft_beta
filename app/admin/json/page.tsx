@@ -80,7 +80,10 @@ export default function AdminJsonPage() {
                 { materials: parsedMaterials, quests: parsedQuests },
                 baseData,
               );
-              setMessage(`JSONを保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
+              if (apiWarning) {
+                console.warn(apiWarning.trim());
+              }
+              setMessage("JSONを保存しました。");
             } catch (error) {
               setMessage(String(error));
             }

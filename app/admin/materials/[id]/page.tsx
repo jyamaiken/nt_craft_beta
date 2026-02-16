@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
 import { fetchBaseData, loadDataWithOverlay, saveUserEffectiveData } from "@/lib/user-cache";
@@ -16,6 +16,7 @@ function createNewMaterial(id: string): Material {
 
 export default function MaterialEditPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [materialId, setMaterialId] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
@@ -125,7 +126,10 @@ export default function MaterialEditPage() {
           : await fetchBaseData();
       await saveUserEffectiveData({ materials: next, quests }, baseData);
       setMaterials(next);
-      setMessage(`保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
+      if (apiWarning) {
+        console.warn(apiWarning.trim());
+      }
+      router.push("/admin/materials");
     } catch (error) {
       setMessage(String(error));
     }

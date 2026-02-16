@@ -123,7 +123,10 @@ export default function MaterialsListPage() {
           : await fetchBaseData();
       await saveUserEffectiveData({ materials: next, quests }, baseData);
       setMaterials(next);
-      setMessage(`素材 ${materialId} を削除しました。ユーザーキャッシュも更新しました。${apiWarning}`);
+      if (apiWarning) {
+        console.warn(apiWarning.trim());
+      }
+      setMessage(`素材 ${materialId} を削除しました。`);
     } catch (error) {
       setMessage(String(error));
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Material, Quest } from "@/lib/types";
 import { fetchBaseData, loadDataWithOverlay, saveUserEffectiveData } from "@/lib/user-cache";
@@ -16,6 +16,7 @@ function createNewQuest(id: string): Quest {
 
 export default function QuestEditPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [questId, setQuestId] = useState("");
   const [quests, setQuests] = useState<Quest[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -123,7 +124,10 @@ export default function QuestEditPage() {
           : await fetchBaseData();
       await saveUserEffectiveData({ materials, quests: next }, baseData);
       setQuests(next);
-      setMessage(`保存しました。ユーザーキャッシュも更新しました。${apiWarning}`);
+      if (apiWarning) {
+        console.warn(apiWarning.trim());
+      }
+      router.push("/admin/quests");
     } catch (error) {
       setMessage(String(error));
     }

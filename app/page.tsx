@@ -55,7 +55,6 @@ export default function HomePage() {
   const [search, setSearch] = useState("");
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
   const [showIntermediate, setShowIntermediate] = useState(false);
-  const [cacheMessage, setCacheMessage] = useState("");
   const [fixedMaterialIds, setFixedMaterialIds] = useState<Set<string>>(new Set<string>());
 
   useEffect(() => {
@@ -69,14 +68,6 @@ export default function HomePage() {
         setMaterials(loadedMaterials);
         setQuests(loadedQuests);
         setSelectedQuestId(loadedQuests[0]?.id ?? null);
-        setCacheMessage(
-          loaded.hasOverlay
-            ? "ブラウザ保存データを反映中です。管理メニューから初期値に戻せます。"
-            : "",
-        );
-        if (loaded.baseUpdatedSinceOverlay) {
-          setCacheMessage("ベースデータ更新を検知し、ユーザー編集差分を再適用しています。");
-        }
         setState("ready");
       } catch (error) {
         setState("error");
@@ -161,7 +152,6 @@ export default function HomePage() {
             <div className="section-head">
               <h2>{selectedQuest.name}</h2>
               <p>{selectedQuest.id}</p>
-              {cacheMessage ? <p className="muted">{cacheMessage}</p> : null}
             </div>
 
             <div className="card">
